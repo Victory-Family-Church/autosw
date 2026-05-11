@@ -30,6 +30,24 @@ app.post('/refresh', (req, res) => {
   res.json({ refreshed: sseClients.size });
 });
 
+// Show a specific event by ID — fetches its slug and pushes the new iframe src to all connected pages
+app.post('/show/:id', async (req, res) => {
+  try {
+    await client.login(uname, passwd);
+    const event = await client.getEvent(req.params.id);
+    const src = `https://live.syncwords.com/c-${event.slug}?bg_color=000000&font_size=80px&font_color=ffffff`;
+
+    for (const c of sseClients) {
+      c.write(`event: load\ndata: ${JSON.stringify({ src })}\n\n`);
+    }
+
+    res.json({ slug: event.slug, src, pushed: sseClients.size });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/cap', async (req, res) => {
   try {
     await client.login(uname, passwd);
@@ -59,6 +77,9 @@ app.get('/cap', async (req, res) => {
           <script>
             const es = new EventSource('/sse');
             es.addEventListener('refresh', () => location.reload());
+            es.addEventListener('load', (e) => {
+              document.querySelector('iframe').src = JSON.parse(e.data).src;
+            });
           </script>
         </body>
       </html>

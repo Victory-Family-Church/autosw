@@ -50,6 +50,21 @@ The `refreshed` value is the number of connected clients that were notified.
 
 ---
 
+### `POST /show/:id`
+
+Looks up a specific event by ID, fetches its slug, and pushes the new caption iframe URL to all connected clients — updating the iframe in place without a full page reload.
+
+```bash
+curl -X POST http://localhost:3000/show/42416
+```
+
+Response:
+```json
+{ "slug": "EsoKid", "src": "https://live.syncwords.com/c-EsoKid?bg_color=000000&font_size=80px&font_color=ffffff", "pushed": 2 }
+```
+
+---
+
 ### `GET /sse`
 
 Server-Sent Events stream used internally by `/cap` to receive reload signals. You don't need to call this directly.
