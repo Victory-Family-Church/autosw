@@ -50,34 +50,19 @@ pm2 startup            # generates and prints a command — run the output comma
 pm2 save               # saves the current process list so it's restored on boot
 ```
 
-## Launch Safari at Login
+## Launch at Login (no browser chrome)
 
-To have Safari open `/cap` at a specific size on login, create an AppleScript app and add it as a Login Item.
+On macOS Sonoma and later, Safari can save any page as a standalone web app with no title bar, address bar, or tabs.
 
-**1. Create the script**
+**1. Add to Dock**
 
-Open Script Editor (Spotlight → "Script Editor"), paste the following, and adjust the URL and dimensions as needed:
+With the server running, open `http://localhost:3000/cap` in Safari, then go to File → Add to Dock. Give it a name and click Add.
 
-```applescript
-tell application "Safari"
-  activate
-  open location "http://localhost:3000/cap"
-  delay 1
-  set bounds of front window to {0, 0, 1920, 1080}
-end tell
-```
+**2. Add it as a Login Item**
 
-`bounds` is `{left, top, right, bottom}` in pixels, so `{0, 0, 1920, 1080}` opens a full-screen window at 1920×1080.
+System Settings → General → Login Items → click **+** and select the web app (it will appear in `~/Applications/` as the name you gave it).
 
-**2. Save it as an app**
-
-File → Export → set File Format to **Application**. Save it somewhere permanent like `~/Applications/`.
-
-**3. Add it as a Login Item**
-
-System Settings → General → Login Items → click **+** and select the saved app.
-
-Safari will now open to `/cap` at the specified size every time you log in. Combined with `pm2 startup` + `pm2 save`, both the server and the browser launch automatically on boot.
+The web app will launch automatically on login in its own frameless window with no browser chrome. Combined with `pm2 startup` + `pm2 save`, both the server and the display launch automatically on boot.
 
 ## Endpoints
 
