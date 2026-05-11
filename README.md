@@ -50,6 +50,35 @@ pm2 startup            # generates and prints a command — run the output comma
 pm2 save               # saves the current process list so it's restored on boot
 ```
 
+## Launch Safari at a Specific Size
+
+To open Safari at a specific size on login, create an AppleScript app and add it as a Login Item.
+
+**1. Create the script**
+
+Open Script Editor (Spotlight → "Script Editor"), paste the following, and adjust the dimensions as needed:
+
+```applescript
+tell application "Safari"
+  activate
+  open location "http://localhost:3000/cap"
+  delay 1
+  set bounds of front window to {0, 0, 1920, 1080}
+end tell
+```
+
+`bounds` is `{left, top, right, bottom}` in pixels.
+
+**2. Save it as an app**
+
+File → Export → set File Format to **Application**. Save it somewhere permanent like `~/Applications/`.
+
+**3. Add it as a Login Item**
+
+System Settings → General → Login Items → click **+** and select the saved app.
+
+---
+
 ## Launch at Login (no browser chrome)
 
 On macOS Sonoma and later, Safari can save any page as a standalone web app with no title bar, address bar, or tabs.
