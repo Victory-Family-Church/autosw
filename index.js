@@ -9,6 +9,18 @@ const app = express();
 // Track all connected SSE clients
 const sseClients = new Set();
 
+// Server status — updated by all endpoints, readable via GET /status
+let status = { ok: true, message: 'Idle', timestamp: new Date().toISOString() };
+
+function setStatus(ok, message) {
+  status = { ok, message, timestamp: new Date().toISOString() };
+}
+
+// Status endpoint
+app.get('/status', (req, res) => {
+  res.json(status);
+});
+
 // SSE endpoint — the page subscribes here and waits for a refresh signal
 app.get('/sse', (req, res) => {
   res.set({
@@ -24,9 +36,10 @@ app.get('/sse', (req, res) => {
 
 // Trigger endpoint — POST /refresh to reload all connected pages
 app.post('/refresh', (req, res) => {
-  for (const client of sseClients) {
-    client.write('event: refresh\ndata: {}\n\n');
+  for (const c of sseClients) {
+    c.write('event: refresh\ndata: {}\n\n');
   }
+  setStatus(true, `Refresh triggered (${sseClients.size} clients)`);
   res.json({ refreshed: sseClients.size });
 });
 
@@ -37,7 +50,8 @@ app.post('/update', async (req, res) => {
     const current = await client.getCurrentEvents();
 
     if (current.length === 0) {
-      return res.status(404).json({ error: 'No events currently in progress' });
+      setStatus(false, 'No events currently in progress');
+      return res.status(404).json({ ok: false });
     }
 
     const event = await client.getEvent(current[0].id);
@@ -47,10 +61,12 @@ app.post('/update', async (req, res) => {
       c.write(`event: load\ndata: ${JSON.stringify({ src })}\n\n`);
     }
 
+    setStatus(true, `Showing event: ${event.title} (${event.slug})`);
     res.json({ slug: event.slug, src, pushed: sseClients.size });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    setStatus(false, err.message);
+    res.status(500).json({ ok: false });
   }
 });
 
@@ -65,10 +81,12 @@ app.post('/show/:id', async (req, res) => {
       c.write(`event: load\ndata: ${JSON.stringify({ src })}\n\n`);
     }
 
+    setStatus(true, `Showing event: ${event.title} (${event.slug})`);
     res.json({ slug: event.slug, src, pushed: sseClients.size });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message });
+    setStatus(false, err.message);
+    res.status(500).json({ ok: false });
   }
 });
 
@@ -77,15 +95,35 @@ app.get('/cap', async (req, res) => {
     await client.login(uname, passwd);
 
     const upcoming = await client.getUpcomingEvents();
-    console.log('Upcoming events:', upcoming);
 
     if (upcoming.length === 0) {
-      return res.send('<p>No upcoming events found.</p>');
+      setStatus(false, 'No upcoming events found');
+      return res.send(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              * { margin: 0; padding: 0; box-sizing: border-box; }
+              html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+            </style>
+          </head>
+          <body>
+            <script>
+              const es = new EventSource('/sse');
+              es.addEventListener('refresh', () => location.reload());
+              es.addEventListener('load', (e) => {
+                document.querySelector('iframe').src = JSON.parse(e.data).src;
+              });
+            </script>
+          </body>
+        </html>
+      `);
     }
 
     const event = await client.getEvent(upcoming[0].id);
     const src = `https://live.syncwords.com/c-${event.slug}?bg_color=000000&font_size=80px&font_color=ffffff`;
 
+    setStatus(true, `Showing event: ${event.title} (${event.slug})`);
     res.send(`
       <!DOCTYPE html>
       <html>
@@ -110,7 +148,8 @@ app.get('/cap', async (req, res) => {
     `);
   } catch (err) {
     console.error(err);
-    res.status(500).send(`<p>Error: ${err.message}</p>`);
+    setStatus(false, err.message);
+    res.status(500).send('');
   }
 });
 

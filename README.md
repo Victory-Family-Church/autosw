@@ -16,6 +16,23 @@ email=you@example.com password=yourpassword node index.js
 
 ## Endpoints
 
+### `GET /status`
+
+Returns the current server status — updated after every operation. Check here for errors instead of reading response bodies.
+
+```bash
+curl http://localhost:3000/status
+```
+
+Response:
+```json
+{ "ok": true, "message": "Showing event: Sunday Service (EsoKid)", "timestamp": "2026-05-11T14:00:00.000Z" }
+```
+
+`ok` is `false` and `message` contains the error detail when something goes wrong.
+
+---
+
 ### `GET /cap`
 
 Logs into SyncWords, finds the next upcoming event, and serves an HTML page with a captions iframe.
