@@ -30,6 +30,30 @@ app.post('/refresh', (req, res) => {
   res.json({ refreshed: sseClients.size });
 });
 
+// Update endpoint — finds the current in-progress event and pushes its iframe src to all connected pages
+app.post('/update', async (req, res) => {
+  try {
+    await client.login(uname, passwd);
+    const current = await client.getCurrentEvents();
+
+    if (current.length === 0) {
+      return res.status(404).json({ error: 'No events currently in progress' });
+    }
+
+    const event = await client.getEvent(current[0].id);
+    const src = `https://live.syncwords.com/c-${event.slug}?bg_color=000000&font_size=80px&font_color=ffffff`;
+
+    for (const c of sseClients) {
+      c.write(`event: load\ndata: ${JSON.stringify({ src })}\n\n`);
+    }
+
+    res.json({ slug: event.slug, src, pushed: sseClients.size });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Show a specific event by ID — fetches its slug and pushes the new iframe src to all connected pages
 app.post('/show/:id', async (req, res) => {
   try {
