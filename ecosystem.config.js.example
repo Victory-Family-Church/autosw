@@ -1,0 +1,12 @@
+module.exports = {
+  apps: [
+    {
+      name: 'autosw',
+      script: 'index.js',
+      env: {
+        email: 'you@example.com',
+        password: 'yourpassword',
+      },
+    },
+  ],
+};

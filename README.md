@@ -14,6 +14,71 @@ npm install
 email=you@example.com password=yourpassword node index.js
 ```
 
+## Running with PM2
+
+Install PM2 globally if you haven't already:
+
+```bash
+npm install -g pm2
+```
+
+Fill in your credentials in `ecosystem.config.js`, then start the server:
+
+```bash
+pm2 start ecosystem.config.js
+```
+
+Or without the ecosystem file:
+
+```bash
+email=you@example.com password=yourpassword pm2 start index.js --name autosw
+```
+
+Useful commands:
+
+```bash
+pm2 logs autosw        # tail logs
+pm2 status             # check running processes
+pm2 restart autosw     # restart the server
+pm2 stop autosw        # stop the server
+```
+
+To have PM2 restart the server automatically on reboot:
+
+```bash
+pm2 startup            # generates and prints a command — run the output command as instructed
+pm2 save               # saves the current process list so it's restored on boot
+```
+
+## Launch Safari at Login
+
+To have Safari open `/cap` at a specific size on login, create an AppleScript app and add it as a Login Item.
+
+**1. Create the script**
+
+Open Script Editor (Spotlight → "Script Editor"), paste the following, and adjust the URL and dimensions as needed:
+
+```applescript
+tell application "Safari"
+  activate
+  open location "http://localhost:3000/cap"
+  delay 1
+  set bounds of front window to {0, 0, 1920, 1080}
+end tell
+```
+
+`bounds` is `{left, top, right, bottom}` in pixels, so `{0, 0, 1920, 1080}` opens a full-screen window at 1920×1080.
+
+**2. Save it as an app**
+
+File → Export → set File Format to **Application**. Save it somewhere permanent like `~/Applications/`.
+
+**3. Add it as a Login Item**
+
+System Settings → General → Login Items → click **+** and select the saved app.
+
+Safari will now open to `/cap` at the specified size every time you log in. Combined with `pm2 startup` + `pm2 save`, both the server and the browser launch automatically on boot.
+
 ## Endpoints
 
 ### `GET /status`
