@@ -95,6 +95,43 @@ The web app will launch automatically on login in its own frameless window with 
 
 ## Endpoints
 
+### `GET /health`
+
+Returns server health info — useful for uptime monitoring.
+
+```bash
+curl http://localhost:3000/health
+```
+
+Response:
+```json
+{ "ok": true, "uptime": 3600, "clients": 1, "timestamp": "2026-05-11T14:00:00.000Z" }
+```
+
+`uptime` is in seconds. `clients` is the number of currently connected SSE clients.
+
+---
+
+### `POST /system/shutdown`
+
+Shuts down the host machine.
+
+```bash
+curl -X POST http://localhost:3000/system/shutdown
+```
+
+---
+
+### `POST /system/restart`
+
+Restarts the host machine.
+
+```bash
+curl -X POST http://localhost:3000/system/restart
+```
+
+---
+
 ### `GET /status`
 
 Returns the current server status — updated after every operation. Check here for errors instead of reading response bodies.

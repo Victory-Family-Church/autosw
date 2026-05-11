@@ -1,10 +1,12 @@
 const { SyncwordsClient } = require('./syncwords-client');
+const { exec } = require('child_process');
 const client = new SyncwordsClient();
 const uname = process.env.email;
 const passwd = process.env.password;
 
 const express = require('express');
 const app = express();
+const startTime = Date.now();
 
 // Track all connected SSE clients
 const sseClients = new Set();
@@ -19,6 +21,28 @@ function setStatus(ok, message) {
 // Status endpoint
 app.get('/status', (req, res) => {
   res.json(status);
+});
+
+// Healthcheck endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    ok: true,
+    uptime: Math.floor((Date.now() - startTime) / 1000),
+    clients: sseClients.size,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Shutdown the host machine
+app.post('/system/shutdown', (req, res) => {
+  res.json({ ok: true, message: 'Shutting down' });
+  exec(`osascript -e 'tell app "System Events" to shut down'`);
+});
+
+// Restart the host machine
+app.post('/system/restart', (req, res) => {
+  res.json({ ok: true, message: 'Restarting' });
+  exec(`osascript -e 'tell app "System Events" to restart'`);
 });
 
 // SSE endpoint — the page subscribes here and waits for a refresh signal
