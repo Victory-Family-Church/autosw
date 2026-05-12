@@ -8,6 +8,22 @@ Express server that displays a live SyncWords caption iframe and supports remote
 npm install
 ```
 
+## Authentication
+
+All endpoints except `/cap` and `/sse` require an `X-API-Key` header. Set the key via the `apiKey` environment variable (or in `ecosystem.config.js`).
+
+If `apiKey` is not set, authentication is disabled.
+
+```bash
+curl -X POST http://localhost:3000/refresh \
+  -H "X-API-Key: your-api-key"
+```
+
+Requests without a valid key receive a `401` response:
+```json
+{ "error": "Unauthorized" }
+```
+
 ## Running
 
 ```bash

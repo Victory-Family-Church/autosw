@@ -6,6 +6,7 @@ module.exports = {
       env: {
         email: 'you@example.com',
         password: 'yourpassword',
+        apiKey: 'your-api-key',
       },
     },
   ],

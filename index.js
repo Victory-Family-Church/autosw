@@ -8,6 +8,22 @@ const express = require('express');
 const app = express();
 const startTime = Date.now();
 
+// API key auth — protects all endpoints except /cap and /sse
+const apiKey = process.env.apiKey;
+
+function requireApiKey(req, res, next) {
+  if (!apiKey) return next(); // no key set, auth disabled
+  const provided = req.headers['x-api-key'];
+  if (provided !== apiKey) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
+app.use((req, res, next) => {
+  const unprotected = ['/cap', '/sse'];
+  if (unprotected.includes(req.path)) return next();
+  requireApiKey(req, res, next);
+});
+
 // Track all connected SSE clients
 const sseClients = new Set();
 
